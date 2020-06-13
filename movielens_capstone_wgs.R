@@ -121,7 +121,7 @@ RMSE <- function(true_ratings, predicted_ratings){
 # Regularized Movie + Genres + Year Released + User + Year Rated Effect Model"
 ###############################
 # using cross validation to select penalty
-penalty <- seq(0, 25, 0.25)
+penalty <- seq(10, 20, 0.25)
 final_rmses <- sapply(penalty, function(p){
   mu <-mean(edx$rating)
   # movie effect with regularirzation
@@ -173,4 +173,6 @@ final_rmse_results <- tibble(method = "Regularized Movie + Genres + Year Release
 final_rmse_results %>% knitr::kable()
 # review penalty
 qplot(penalty, final_rmses)
+
+
 

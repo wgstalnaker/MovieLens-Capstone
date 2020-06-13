@@ -1,7 +1,7 @@
 ---
 title: "MovieLens Project"
 author: "wgstalnaker"  
-date: "6/10/2020"
+date: "6/23/2020"
 output: pdf_document
 ---
 
@@ -9,11 +9,11 @@ output: pdf_document
 
 ## Introduction
 <!-- This section that describes the dataset and summarizes the goal of the project and key steps that were performed. -->
-The focus of this project will be the development of a movie recommendation system using the MovieLens dataset. The 10M version of the MovieLens dataset will be used to train and test machine learning algorithms to predict movie recommendations. This dataset version contains 10000054 ratings and 95580 tags applied to 10681 movies by 71567 users of the online movie recommendation service MovieLens. Users within this dataset have been selected at random, the only criteria is users have rated at least twenty movies. Additional information related to the MovieLens dataset can be obtained through this link https://group lens.org/data sets/movie lens/10m/. 
+The focus of this project is the development of a movie recommendation system using the MovieLens dataset. The 10M version of the MovieLens dataset is used to train and test machine learning algorithms to predict movie recommendations. This dataset version of the MovieLens online movie recommendation service contains 10000054 ratings and 95580 tags applied to 10681 movies by 71567 users. **Users within this dataset have been selected at random with, the only criteria being that users have rated at least twenty movies.** Additional information related to the MovieLens dataset can be obtained by visiting link https://group lens.org/data sets/movie lens/10m/. 
 
-Evaluation of algorithms used for movie recommendations will use Root Means Squared Error (RMSE) function to gauge performance. The goal of the recommendation system is to generate prediction where the RMSE is less than 0.86490. Data for the project is generated from a predefined script. The script will create two data partitions edx for training and validation for testing algorithms. For this assignment the validation dataset is not to be used until making final predictions and evaluating the RMSE of the final algorithm. To accommodate this a training and test set will be generated from the edx data as delivered in the data ingestion script to perform training and testing. 
+Evaluation of algorithms used for movie recommendations will use Root Means Squared Error (RMSE) function to gauge performance. The goal of the recommendation system is to generate predictions where the RMSE is less than 0.86490. Data for the project is generated from a predefined script. The script will create two data partitions edx for training and validation for testing algorithms. For this assignment the validation dataset is not to be used until making final predictions and evaluating the RMSE of the final algorithm. To accommodate this, both a training and test set will be generated from the edx data as delivered in the data ingestion script. 
 
-The general approach taken to solve the movie recommendation prediction will be to implement a series of model based approaches. The models will make an assumption that ratings can be generalized across all movies and users with the differences explained as random variations. Model will include ratings related to movies, users, genres and movie released year. This will prove to be an acceptable approach to solving the challenge and meeting the minimum RMSE score. Future analysis of predictions will show a negative impact by large estimate from small samples. This will be handled by implementing regularization to penalize ratings coming large estimates from small samples. Coupling the model based approach and regularization prove effective and allow predictions to be made with minimum time and computer processing power required for such a large dataset. 
+The general approach taken to solve the movie recommendation prediction was to implement a series of model based approaches. The models will make an assumption that ratings can be generalized across all movies and users with the differences explained as random variations. Model will include ratings related to movies, users, genres and movie released year. This will prove to be an acceptable approach to solving the challenge and meeting the minimum RMSE score. Future analysis of predictions will show a negative impact by large estimates from small samples. **This will be handled by implementing regularization to penalize ratings coming large estimates from small samples.** Coupling the model based approach and regularization proves effective and allows predictions to be made with minimum time and computer processing power required for such a large dataset. 
 
 \pagebreak
 
@@ -274,6 +274,7 @@ The results of this new parameter achieve the expected results, a variation of g
 # the results are a mix of good and bad movies as expected. Recall with the
 # overall averge ~3.5, a bi of 1.5 would imply a highest rating of 5
 qplot(m_e, data = movie_avg, bins = 10, color = I("black"))
+
 ```
 
 To make the prediction leveraging the Movie Effect the previous model will be used with the addition of m_e. This will be a representation of the average movie rating as shown below.
@@ -322,9 +323,13 @@ movie_avg %>%
   select(title, m_e, cnt) %>% 
   slice(1:5) %>% 
   knitr::kable()
-
 ```
+
+
 \pagebreak
+
+
+
 The predictions are being affected by movies which have high ratings by only a few users to even single users as shown in the cnt variable of sum of ratings per movie. The movies that are listed as the best are very obscure, if they were truly the best movies the number of views and corresponding ratings rate would be much higher. For instances per https://www.imdb.com number 1 movie is the The Godfather (1972) How many reviews does this movie have per IMDB 17747. Per our data 15975.
 
 ```{r, include=TRUE}
@@ -355,7 +360,7 @@ The general goal of this model will be to penalize extreme ratings 5's or 1's wh
 ```{r}
 # Movie Effect with Regularization 
 # using cross validation to select best penalty with a max of 10
-penalty <- seq(0, 25, 0.25)
+penalty <- seq(10, 20, 0.25)
 rmses <- sapply(penalty, function(p){
   mu <-mean(train_set$rating)
   # movie effect with regularirzation movies will large estimate 
@@ -398,7 +403,7 @@ group_by(userId) %>%
 To account for out layer scoring this model will factor in users who rate a movie poorly where the overall user base has rated the movie high. This will be accomplished by creating a u_e parameter for the user effect. This parameter will be the average of the users rating, baseline and movie effect. Once u_e has been calculated it will be used to generate the prediction to be validated against the root mean squared error. We will also include the regularization method used in the previous model, to again account for large estimates based on small sample sizes.
 
 ```{r, include=TRUE}
-penalty <- seq(0, 25, 0.25)
+penalty <- seq(10, 20, 0.25)
 rmses <- sapply(penalty, function(p){
   mu <-mean(train_set$rating)
   # movie effect with regularirzation
@@ -433,7 +438,7 @@ To see if the root mean squared error can be reduced even further the same appro
 
 ```{r, include=TRUE}
 
-penalty <- seq(0, 25, 0.25)
+penalty <- seq(10, 20, 0.25)
 rmses <- sapply(penalty, function(p){
   mu <-mean(train_set$rating)
   # movie effect with regularirzation
@@ -476,7 +481,7 @@ The last improvement will be including the the year to the movie was released to
 
 ```{r, include=TRUE}
 
-penalty <- seq(0, 25, 0.25)
+penalty <- seq(10, 20, 0.25)
 rmses <- sapply(penalty, function(p){
   mu <-mean(train_set$rating)
   # movie effect with regularirzation
@@ -530,7 +535,7 @@ The final model will included movie, user, genre, and year of release effects de
 
 ```{r, include=TRUE}
 
-penalty <- seq(0, 25, 0.25)
+penalty <- seq(10, 20, 0.25)
 final_rmses <- sapply(penalty, function(p){
   mu <-mean(edx$rating)
   # movie effect with regularirzation
