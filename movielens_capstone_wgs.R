@@ -1,14 +1,14 @@
 
-########################################################################
+###################################################################################
 # MovieLens Recommendation System for detailed steps leading to 
 # development see related report and Rmarkdown file. This R Script
 # includes the minumum requirementsto ingest, manipulate, train and 
 # test model, and product the final root mean square error calculation
-########################################################################
+###################################################################################
 
-######################################
+###################################################################################
 # Create edx set, validation set
-######################################
+###################################################################################
 
 # Note: this process could take a couple of minutes
 
@@ -54,9 +54,9 @@ edx <- rbind(edx, removed)
 
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 
-###########################################
+###################################################################################
 # Data Exploration 
-###########################################
+###################################################################################
 # structure and summary
 head(edx)
 str(edx)
@@ -85,10 +85,9 @@ edx %>% count(userId) %>%
   scale_x_log10() + 
   ggtitle("User Reviews per Movie")
 
-######################################
-# Format source data timestamp and 
-# extract and store year rated 
-######################################
+###################################################################################
+# Format source data timestamp and extract and store year rated 
+###################################################################################
 edx <- edx %>% 
   mutate(timestamp = as.POSIXct(timestamp, origin = "1960-01-01", tz = "GMT"))
 edx <- edx %>% 
@@ -97,16 +96,18 @@ validation <- validation %>%
   mutate(timestamp = as.POSIXct(timestamp, origin = "1960-01-01", tz = "GMT"))
 validation <- validation %>% 
   mutate(year_rated = as.numeric(str_sub(timestamp, 1, 4)))
-###########################################
+###################################################################################
 # Extract year released from title 
-###########################################
+###################################################################################
 edx <- edx %>% 
   mutate(year_released = as.numeric(str_sub(title,-5, -2)))
 validation<- validation %>% 
   mutate(year_released = as.numeric(str_sub(title,-5, -2)))
-###########################################
-# Flatten Genre data
-###########################################
+
+###################################################################################
+# Separate Genre data currently delimitted with a pipe "|"
+###################################################################################
+
 edx <- edx %>% separate_rows(genres, sep = "\\|")
 validation <- validation %>% separate_rows(genres, sep = "\\|")
 
@@ -117,12 +118,15 @@ validation <- validation %>% separate_rows(genres, sep = "\\|")
 RMSE <- function(true_ratings, predicted_ratings){
   sqrt(mean((true_ratings - predicted_ratings)^2))
 }
-###############################
+###################################################################################
 # Regularized Movie + Genres + Year Released + User + Year Rated Effect Model"
-###############################
-# using cross validation to select penalty
+###################################################################################
+# using cross validation to select penalty, previous review found the optimual 
+# to be around ~15 tightening range to improve processing time
 penalty <- seq(10, 20, 0.25)
+# set variable final_rmses to store scores
 final_rmses <- sapply(penalty, function(p){
+  # average of all training ratings
   mu <-mean(edx$rating)
   # movie effect with regularirzation
   m_e <- edx %>%
@@ -146,28 +150,19 @@ final_rmses <- sapply(penalty, function(p){
     left_join(y_e1, by = "year_released") %>% 
     group_by(userId) %>% 
     summarize(u_e = sum(rating - mu - m_e - g_e - y_e1)/(n()+p), .groups = 'drop') 
-  # year rated effect with regularirzation
-  y_e2 <- edx %>% 
-    left_join(m_e, by = "movieId") %>%
-    left_join(g_e, by = "genres") %>%
-    left_join(y_e1, by = "year_released") %>% 
-    left_join(u_e, by = "userId") %>% 
-    group_by(year_rated) %>% 
-    summarize(y_e2 = sum(rating - mu - m_e - g_e - y_e1 - u_e)/(n()+p), .groups = 'drop')    
   # predictions
   predicted_ratings <- validation %>%
     left_join(m_e, by = "movieId") %>%
     left_join(g_e, by = "genres") %>% 
     left_join(y_e1, by = "year_released") %>% 
     left_join(u_e, by = "userId") %>%
-    left_join(y_e2, by = "year_rated") %>% 
-    mutate(pred = mu + m_e + g_e + y_e1 + u_e + y_e2) %>%
+    mutate(pred = mu + m_e + g_e + y_e1 + u_e) %>%
     .$pred
   # Test the predicted results using the loss function
   return(RMSE(predicted_ratings, validation$rating))
 })
 # Create table for storing the final results 
-final_rmse_results <- tibble(method = "Regularized Movie + Genres + Year Released + User + Year Rated Effect Model",  
+final_rmse_results <- tibble(method = "Regularized Movie + Genres + Year Released + User Effect Model",  
                        RMSE = min(final_rmses))
 # Print final results to the console
 final_rmse_results %>% knitr::kable()
