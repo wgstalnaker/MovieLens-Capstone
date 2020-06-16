@@ -8,18 +8,16 @@ output: pdf_document
 \pagebreak
 
 ## Introduction
-<!-- This section that describes the dataset and summarizes the goal of the project and key steps that were performed. -->
 
 This project's focus was the development of a movie recommendation system using the MovieLens dataset. The 10M version of the MovieLens dataset was used to train and test machine learning algorithms to predict movie recommendations. This dataset version of the MovieLens online movie recommendation service contains 10,000,054 ratings and 95,580 tags applied to 10,681 movies by 71,567 users. Users within this dataset were selected at random with the only criteria being that users had rated at least 20 movies. Additional information related to the MovieLens dataset can be obtained by visiting https://grouplens.org/datasets/movielens/10m/. 
 
-Movie recommendations algorithms used the Root Means Squared Error (RMSE) function to gauge performance. The goal of the recommendation system is to generate predictions where the RMSE is less than 0.86490. Data for the project was generated from a predefined script. The script created two data partitions - edx for training and validation for testing algorithms. For this assignment the validation dataset was not used until making final predictions and evaluating the RMSE of the final algorithm. To accommodate this, both a training and test set were generated from the edx data as delivered in the data ingestion script. 
+The movie recommendations algorithms used the Root Means Squared Error (RMSE) function to gauge performance. The goal of the recommendation system is to generate predictions where the RMSE is less than 0.86490. Data for the project was generated from a predefined script. The script created two data partitions - edx for training and validation for testing algorithms. For this assignment, the validation dataset was not used until making final predictions and evaluating the RMSE of the final algorithm. To accommodate this, both a training and test set were generated from the edx data as delivered in the data ingestion script. 
 
 The general approach taken to solve the movie recommendation prediction was to implement a series of model-based approaches. The models make an assumption that ratings can be generalized across all movies and users with the differences explained as random variations. Models included ratings related to movies, users, genres and release years. The model-based approach proved to be an acceptable solution, but not on its own. Future analysis of predictions showed a negative impact by large estimates from small samples. This negative impact was handled by implementing regularization to penalize ratings coming from large estimates that were derived small samples. Coupling the model-based approach and regularization proved effective and allowed predictions to be made with minimum time and computer processing power required for such a large dataset. 
 
 \pagebreak
 
 ## Methodology 
-<!-- This section that explains the process and techniques used, including data cleaning, data exploration and visualization, insights gained, and your modeling approach. -->
 
 ### Create Training and Testing Datasets 
 
@@ -130,7 +128,7 @@ edx %>%
 
 \pagebreak
 
-As previously described, the MovieLens dataset contains 10,000,054 ratings and 95,580 tags applied to 10,681 movies by 71,567 users. When visualizing the ratings per movie and per user we get a sense of the spread of data: 
+As previously described, the MovieLens dataset contains 10,000,054 ratings and 95,580 tags applied to 10,681 movies by 71,567 users. When visualizing the ratings per movie and per user we get a sense of the data spread: 
 
 ```{r, echo=FALSE, out.width='.49\\linewidth', fig.width=3, fig.height=3, fig.show='hold', fig.align='center'}
 
@@ -170,16 +168,16 @@ edx %>% filter(userId %in% users) %>%
 
 \pagebreak
 
-Three key factors in developing predictive models were:
+Three key factors in developing the predictive models shown above were:
 
   * Movies have multiple reviews across independent users
-  * Not all movies receive the same number of ratings; therefore, we have a Movie Effect
-  * Not all users rate the same number of movies, which gives a User Effect
+  * Not all movies receive the same number of ratings; therefore, we have a movie effect
+  * Not all users rate the same number of movies, which gives a user effect
 
 
 ### Data Cleansing  
  
-The genres data in its current format is concerning. If genres are to be used in future models, the pipe delimited format will need to be separated to make individual genre types accessible. The movie release year is embedded within the title, which could prove useful but will need to be extracted. These two observations were handle prior to modeling.
+The genres data in its current format is concerning. If genres are to be used in future models, the pipe delimited format will need to be separated to make individual genre types accessible. The movie release year is embedded within the title, which could prove useful but will need to be extracted. These two observations were handled prior to modeling.
 
 ```{r, echo=FALSE}
 ##############################################
@@ -322,7 +320,7 @@ Leveraging the movie effect does improve the root mean squared error.
 rmse_results %>% knitr::kable()
 ```
 
-However, closer examination showed that the calculated predictions were skewed. The following code created a dataset for reviewing the top and bottom five movies based on the movie effect model. Make note of the cnt column - this is the sum of reviews per movie.
+However, closer examination showed that the calculated predictions were skewed. The following code creates a dataset for reviewing the top and bottom five movies based on the movie effect model. Make note of the cnt column - this is the sum of reviews per movie.
 
 ```{r, include=TRUE}
 # dataset of movieId, title, and count of reviews
@@ -332,7 +330,7 @@ movie_titles <- train_set %>%
   summarise(cnt = n_distinct(userId), .groups = 'drop') %>% 
   arrange(desc(cnt))
 
-# 5 best movies based on Movie Effect
+# 5 best movies based on movie effect
 movie_avg %>% 
   left_join(movie_titles, by="movieId") %>% 
   arrange(desc(m_e)) %>% 
@@ -340,7 +338,7 @@ movie_avg %>%
   slice(1:5) %>% 
   knitr::kable()
 
-# 5 worst based on Movie Effect
+# 5 worst based on movie effect
 movie_avg %>% 
   left_join(movie_titles, by="movieId") %>% 
   arrange(m_e) %>% 
@@ -349,7 +347,7 @@ movie_avg %>%
   knitr::kable()
 ```
 
-In the model's current form, predictions are impacted by movies that have high ratings by only a few users (and even single users), as shown in the cnt variable of sum of ratings per movie. The movies that are listed as the best are very obscure. If they were truly the best movies the number of views and corresponding ratings rate would be much higher. For instance, per https://www.imdb.com, the number one movie is *The Godfather* (1972). IMDB shows that this movie has 17,747 reviews. Conversely, our data shows that this movie has 17,580 reviews.
+In the model's current form, predictions are impacted by movies that have high ratings by only a few users (and even single users), as shown in the cnt variable of sum of ratings per movie. The movies that are listed as the best are very obscure. If they were truly the best movies the number of views and corresponding ratings rate would be much higher. For instance, per https://www.imdb.com, the number one movie is *The Godfather* (1972). IMDB shows that this movie has 17,747 reviews. Conversely, our data shows that this same movie has 17,580 reviews.
 
 ```{r, include=TRUE}
 movie_avg %>% 
@@ -359,7 +357,7 @@ movie_avg %>%
   knitr::kable()
 ```
 
-And the current model's best movie is *Hellhounds on My Trail* (1999), with only one review.
+Additionally, the current model's best movie is *Hellhounds on My Trail* (1999), with only one review.
 
 ```{r, include=TRUE}
 movie_avg %>% 
@@ -369,7 +367,7 @@ movie_avg %>%
   knitr::kable()
 ```
 
-This clearly justifies implementing regularization into the model. This will allow for a penalty to be placed on large estimates that come from small samples sizes like we see in the case of *Hellhounds on My Trail* (1999).
+These discrepancies clearly justify implementing regularization into the model. This will allow for a penalty to be placed on large estimates that come from small samples sizes like we see in the case of *Hellhounds on My Trail* (1999).
 
 ### Regularized Movie Effect Model
 <!-- Third Model -->
@@ -407,7 +405,7 @@ Only a minimal gain is realized; however, the user effect has not been applied t
 ### Regularized Movie and User Effect Model
 <!-- Forth Model -->
 
-The fourth model determined if user ratings were a signification factor in predicting a recommendation from the MovieLens dataset. The graph below shows the variations of ratings per user. As expected the majority were rated greater than a three, after all the movies received funding, so it must have had some merit. However, some were rated both significantly higher and lower than average. Did this imply that some users were more conservative or liberal in their ratings? Regularization was be used again to account for this.
+The Regularized Movie + User Effect Model will determine if user ratings were a signification factor in predicting a recommendation from the MovieLens dataset. The graph below shows the variations of ratings per user. Some were rated both significantly higher and lower than average. Did this imply that some users were more conservative or liberal in their ratings? Regularization will be used again to account for this.
 
 ```{r, include=TRUE}
 
@@ -420,7 +418,7 @@ group_by(userId) %>%
   geom_histogram(bins = 30, color = "black")
 ```
 
-To account for outlier scoring this model factored in users who rated a movie poorly where the majority user base has rated the movie high. This was accomplished by creating a u_e parameter for the user effect. This parameter averaged the user rating, baseline, and movie effect. Once u_e was calculated it was used to generate the prediction to be validated against the root mean squared error. The regularization method used in the previous model was also included, to again account for large estimates based on small sample sizes.
+To account for outlier scoring, this model factored in users who rated a movie poorly where the majority user base has rated the movie high. This was accomplished by creating a u_e parameter for the user effect. This parameter averaged the user rating, baseline, and movie effect. Once u_e was calculated it was used to generate the prediction to be validated against the root mean squared error. The regularization method used in the previous model was also included, to again account for large estimates based on small sample sizes.
 
 ```{r, include=TRUE}
 penalty <- seq(1, 20, 1)
@@ -454,7 +452,7 @@ There is an obvious improvement after completing the calculations and the Regula
 rmse_results %>% knitr::kable()
 ```
 
-To see if the root mean squared error can be reduced even further the same approach as above was taken. This time, both genre and year of release were intoduced into the model.
+To see if the root mean squared error can be reduced even further the same approach as above was taken. This time, both genre and release year were introduced into the model.
 
 ```{r, include=TRUE}
 
@@ -508,7 +506,7 @@ rmse_results %>% knitr::kable()
 ## Results 
 <!-- This section that presents the modeling results and discusses the model performance. -->
 
-The final model included the movie title, user, genre, and year of release effects described above. This model was trained on the edx data and it was tested with the Validation data. 
+The final model included the movie title, user, genre, and release year effects described above. This model was trained on the edx data, and it was tested with the validation data. 
 
 ```{r, include=TRUE}
 
@@ -555,15 +553,13 @@ final_rmse_results <- tibble(method = "Regularized Movie + User + Genres + Year 
 
 ```
 
-The final score was just under the minimum requirement for this assignment, as shown below:
-
-This was produced using regularization on the movie, user, genre and year of release averages.
+The final score was just under the minimum requirement for this assignment, as shown below. This was produced using regularization on the movie, user, genre and release year averages.
 
 ```{r, echo=FALSE, fig.align='left'}
 final_rmse_results %>% knitr::kable()
 ```
 
-Using regulatizaiton the top five and bottom five movies results improved. The results are now in alignment with other movie recommendations platforms. This is a good indicator of the model's performance to make accurate predictions and was made possible by handling the estimates from small samples with regularization.
+Using regularization, the top five and bottom five movies results improved. The results are now in alignment with other movie recommendations platforms. This is a good indicator of the model's prediction accuracy and was made possible by handling the estimates from small samples with regularization.
 
 ```{r, echo=FALSE}
 # review the results
@@ -622,5 +618,5 @@ Once the movie and user effects were combined with the use of regularization the
 ## Conclusion
 <!-- This section that gives a brief summary of the report, its limitations and future work. -->
 
-The required RMSE was achieved for this project marking a positive conclusion. The final RMSE generated by the Regularized Movie + User + Genres + Release Year Effect Model was 0.862. The size of the dataset proved to be the biggest limitation. However, once the issue of large estimates from small samples was identified and handled with regularization, a basic model based on averages proved successful. Four elements of the MovieLens dataset were utilized by the final model: movies, users, genres, and release year. Future models could possibly leverage the rating timestamp to improve the results.
+The required RMSE was achieved for this project, marking a positive conclusion. The final RMSE generated by the Regularized Movie + User + Genres + Release Year Effect Model was 0.862. The dataset size proved to be the biggest limitation. However, once the issue of large estimates from small samples was identified and handled with regularization, a basic model based on averages proved successful. Four elements of the MovieLens dataset were utilized by the final model: movies, users, genres, and release year. Future models could possibly leverage the rating timestamp to improve the results.
 
