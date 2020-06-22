@@ -158,6 +158,8 @@ edx %>% count(userId) %>%
 
 ```
 
+\pagebreak
+
 **Figure 2**
 
 *Illustration of a random sample of user reviews*
@@ -176,7 +178,6 @@ edx %>% filter(userId %in% users) %>%
   abline(h=0:100+0.5, v=0:100+0.5, col = "grey")
 ```
 
-\pagebreak
 
 The previous matrix gives much insight into the MovieLens data set, as it clearly displays the sparseness of reviews for a random sample of 100 movie reviews by 100 users. One user in this sample completed an exponentially larger number of reviews, which could prove insightful in guiding future model builds. The filled matrices show reviewed movies by a user. 
 
