@@ -219,6 +219,8 @@ validation <- validation %>%
   mutate(timestamp = as.POSIXct(timestamp, origin = "1960-01-01", tz = "GMT"))
 ```
 
+\pagebreak
+
 After separating the genre data, we can see the spread across the ratings count for all users.
 
 ```{r, echo=TRUE, warning=FALSE}
